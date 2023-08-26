@@ -150,6 +150,7 @@ async function strategyI(fix, fixPosition, FILTER1, FILTER2) {
   });
   return FILTER2[0];
 }
+
 async function strategyII(shift, shiftPosition, FILTER1, FILTER2) {
   console.log("Strategy - 2");
   var sletters = [];
@@ -237,6 +238,7 @@ async function fetchData(wordList, shouldInclude, shouldNotInclude) {
         shouldNotInclude.forEach((letter) => {
           if (!leaf.includes(letter)) weight++;
         });
+      
         if (weight === shouldNotInclude.length) {
           filter.push(leaf);
         }
@@ -276,14 +278,7 @@ for (var tries = 1; tries < 7; tries++) {
             }) > div`
           )
           .getAttribute("data-state");
-        var letter = document
-          .querySelector(
-            `#wordle-app-game > div.Board-module_boardContainer__TBHNL > div > div:nth-child(${tries}) > div:nth-child(${
-              k + 1
-            }) > div`
-          )
-          .getAttribute("aria-label")
-          .split(" ")[0];
+          var letter = document.querySelector(`#wordle-app-game > div.Board-module_boardContainer__TBHNL > div > div:nth-child(${tries}) > div:nth-child(${k+1}) > div`).getAttribute("aria-label").split(",")[1].toLowerCase().trim();
         if (STAT === "correct") {
           MandateCharacters.push(letter);
           fix.push(letter);
@@ -325,7 +320,7 @@ for (var tries = 1; tries < 7; tries++) {
     shouldInclude.push(useT);
   }
   FILTER1 = await fetchData(wordList, shouldInclude, shouldNotInclude);
-
+ 
   if (
     fix.length !== 0 &&
     fixPosition.length !== 0 &&
