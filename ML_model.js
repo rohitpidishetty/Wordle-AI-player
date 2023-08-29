@@ -3,12 +3,14 @@
 // This Ai model will complete the game in no time.
 // This is based on the Reinforcement Learning principle, which learns to decide the input from the given feedback from the previous output.
 
+// Toggle this mode if you ever feel that the agent is guessing the same word repeatedly. By enabling this mode, we specify the agent that previously guessed incorrect word should not be considered again, thus consider an arbitary value.
+const selfAdjustingMode = true;
+
 let res = await fetch(
   "https://raw.githubusercontent.com/rohitpidishetty/API/main/Data.json"
 );
 var wordList = await res.json();
 wordList = await wordList.words;
-
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -126,6 +128,7 @@ var fix = [];
 var fixPosition = [];
 var shift = [];
 var shiftPosition = [];
+var wordTrials = [];
 
 async function strategyI(fix, fixPosition, FILTER1, FILTER2) {
   console.log("Strategy - 1");
@@ -148,7 +151,9 @@ async function strategyI(fix, fixPosition, FILTER1, FILTER2) {
       if (weight === letters.length) FILTER2.push(leaf);
     }
   });
-  return FILTER2[0];
+  var word = FILTER2[0];
+  word = selfAdjustingMode ? wordTrials.includes(word) ? FILTER2[Math.floor(Math.random() * FILTER2.length-2) + 1] : word : word;
+  return word;
 }
 
 async function strategyII(shift, shiftPosition, FILTER1, FILTER2) {
@@ -169,7 +174,9 @@ async function strategyII(shift, shiftPosition, FILTER1, FILTER2) {
     });
     if (weight === sletters.length) FILTER2.push(leaf);
   });
-  return FILTER2[0];
+  var word = FILTER2[0];
+  word = selfAdjustingMode ? wordTrials.includes(word) ? FILTER2[Math.floor(Math.random() * FILTER2.length-2) + 1] : word : word;
+  return word;
 }
 
 async function strategyIII(
@@ -215,12 +222,16 @@ async function strategyIII(
     });
     if (weight === sletters.length) FILTER3.push(leaf);
   });
-  return FILTER3[0];
+  var word = FILTER3[0];
+  word = selfAdjustingMode ? wordTrials.includes(word) ? FILTER3[Math.floor(Math.random() * FILTER3.length-2) + 1] : word : word;
+  return word;
 }
 
 async function strategyIV(FILTER1) {
   console.log("Strategy - 4");
-  return FILTER1[0];
+  var word = FILTER1[0];
+  word = selfAdjustingMode ? wordTrials.includes(word) ? FILTER1[Math.floor(Math.random() * FILTER1.length-2) + 1] : word : word;
+  return word;
 }
 
 async function fetchData(wordList, shouldInclude, shouldNotInclude) {
@@ -326,21 +337,26 @@ for (var tries = 1; tries < 7; tries++) {
     fixPosition.length !== 0 &&
     shift.length === 0 &&
     shiftPosition.length === 0
-  )
+  ) {
     guess = await strategyI(fix, fixPosition, FILTER1, FILTER2);
+    wordTrials.push(guess);
+  }
   else if (
     shift.length !== 0 &&
     shiftPosition.length !== 0 &&
     fix.length === 0 &&
     fixPosition.length === 0
-  )
+  ) {
     guess = await strategyII(shift, shiftPosition, FILTER1, FILTER2);
+    wordTrials.push(guess);
+  }
   else if (
     shift.length !== 0 &&
     shiftPosition.length !== 0 &&
     fix.length !== 0 &&
     fixPosition.length !== 0
-  )
+  ) {
+
     guess = await strategyIII(
       shift,
       shiftPosition,
@@ -349,7 +365,13 @@ for (var tries = 1; tries < 7; tries++) {
       FILTER1,
       FILTER2,
       FILTER3
-    );
-  else guess = await strategyIV(FILTER1);
+      );
+    wordTrials.push(guess);
+    }
+    else 
+    {
+      guess = await strategyIV(FILTER1);
+      wordTrials.push(guess);
+    }
 }
 // All copyrights are reserved by NFRAC.
